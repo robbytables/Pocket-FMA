@@ -1,8 +1,8 @@
 <resources>
 
-    <string name="app_name">PocketFMA</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Pocket FMA</string>
+    <string name="title">Pocket FMA Player</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">Pocket FMA</string>
 
 </resources>

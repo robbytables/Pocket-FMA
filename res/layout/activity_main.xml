@@ -8,31 +8,43 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:padding="@dimen/padding_medium"
-        android:text="@string/hello_world"
+        android:layout_alignParentTop="true"
+        android:paddingTop="25dp"
+        android:text="@string/title"
         tools:context=".MainActivity" />
 
-    <SlidingDrawer
-        android:id="@+id/slidingDrawer1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_alignParentTop="true"
-        android:content="@+id/content"
-        android:handle="@+id/handle" >
-
-        <Button
-            android:id="@+id/handle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Handle" />
-
-        <LinearLayout
-            android:id="@+id/content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-        </LinearLayout>
-    </SlidingDrawer>
-
+    <LinearLayout 
+        android:id="@+id/controlRow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true">
+        
+        <Button android:id="@+id/rewindbutton"
+            android:background="@drawable/btn_rew"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp" />
+        <Button android:id="@+id/playbutton"
+            android:background="@drawable/btn_play"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp" />
+        <Button android:id="@+id/pausebutton"
+            android:background="@drawable/btn_pause"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp" />
+        <Button android:id="@+id/skipbutton"
+            android:background="@drawable/btn_ff"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp" />
+        <Button android:id="@+id/stopbutton"
+            android:background="@drawable/btn_stop"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="5dp" />
+    </LinearLayout>
+    
 </RelativeLayout>

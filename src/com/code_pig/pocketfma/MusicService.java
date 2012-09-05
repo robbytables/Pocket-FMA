@@ -2,6 +2,7 @@ package com.code_pig.pocketfma;
 
 import java.io.IOException;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
@@ -22,7 +23,8 @@ import android.widget.Toast;
  * Service which handles media playback.
  */
 public class MusicService extends Service implements OnCompletionListener,
-		OnPreparedListener, OnErrorListener, MusicFocusable {
+		OnPreparedListener, OnErrorListener, MusicFocusable,
+		MusicRetrieverTask.MusicRetrieverPreparedListener {
 	final static String TAG = "RandomMusicPlayer"; // for debugging
 
 	// Intent Actions //TODO ensure all are used
@@ -35,17 +37,19 @@ public class MusicService extends Service implements OnCompletionListener,
 	public static final String ACTION_URL = "com.example.android.musicplayer.action.URL";
 
 	public static final float DUCK_VOLUME = 0.1f;
-	private final String API_KEY = "LI1AWSUABA89HLQM";
 	final int NOTIFICATION_ID = 1;
 
 	private WifiLock wifiLock;
 	private AudioManager audioManager;
 	private NotificationManager notificationManager;
+    Notification mNotification = null;
+	private MusicRetriever retriever;
 	private MediaPlayer player = null;
 	private AudioFocusHelper audioFocusHelper = null;
+	private String currentTrack = null;
+	private String nextTrack = null;
 	
-	private String[] playList = {};
-	private int currentTrackIndex = 0;
+    boolean startPlayingAfterRetrieve = false;
 
 	// Service states
 	enum State {
@@ -92,10 +96,14 @@ public class MusicService extends Service implements OnCompletionListener,
 	public void onCreate() {
 		Log.i(TAG, "MusicService.onCreate() called.");
 		
+		// We want the airwaves!
 		wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
 				.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
 		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		
+		retriever = new MusicRetriever();
+		(new MusicRetrieverTask(retriever,this)).execute();
 		
 		if (android.os.Build.VERSION.SDK_INT >= 8) {
 			audioFocusHelper = new AudioFocusHelper(getApplicationContext(), this);
@@ -122,13 +130,11 @@ public class MusicService extends Service implements OnCompletionListener,
         	processStopRequest();
         } else if (action.equals(ACTION_REWIND)) {
         	processRewindRequest();
-        } else if (action.equals(ACTION_URL)) {
-        	processAddRequest(intent);
         }
         
         return START_NOT_STICKY;
 	}
-	
+
 	private void processTogglePlaybackRequest() {
 		if (state == State.Paused || state == State.Stopped) {
 			processPlayRequest();
@@ -138,17 +144,19 @@ public class MusicService extends Service implements OnCompletionListener,
 	}
 	
 	void processPlayRequest() {
+		if (state == State.Retrieving) {
+			startPlayingAfterRetrieve = true;
+			return;
+		}
 		tryToGetAudioFocus();
+		
 		if (state == State.Stopped) {
-			configureAndStartMediaPlayer(false);
+			playNextTrack();
 		}
 		
-		if (state == State.Playing) {
-			state = State.Paused;
-		} 
 		else if (state == State.Paused) {
 			state = State.Playing;
-			configureAndStartMediaPlayer(false);
+			configureAndStartMediaPlayer();
 		}
 	}
 	
@@ -168,7 +176,8 @@ public class MusicService extends Service implements OnCompletionListener,
     void processSkipRequest() {
         if (state == State.Playing || state == State.Paused) {
             tryToGetAudioFocus();
-            playNextTrack(playList[currentTrackIndex]);
+            //TODO this is a downvote
+            playNextTrack();
         }
     }
 
@@ -181,21 +190,21 @@ public class MusicService extends Service implements OnCompletionListener,
 		}
 	}
 	
-	void processAddRequest(Intent intent) {
-		Log.i(TAG, "MusicService.processAddRequest(" + intent + ") called.");
-		tryToGetAudioFocus();
-		playNextTrack(intent.getData().toString());
-	}
+//	void processAddRequest(Intent intent) {
+//		Log.i(TAG, "MusicService.processAddRequest(" + intent + ") called.");
+//		tryToGetAudioFocus();
+//		playNextTrack(intent.getData().toString());
+//	}
 
-    private void playNextTrack(String url) {
+    private void playNextTrack() {
 		state = State.Stopped;
 		relaxResources(false);
-		
+		nextTrack = currentTrack;
 		try {
-			if (url != null) {
+			if (nextTrack != null) {
 				createOrResetMediaPlayer();
 				player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				player.setDataSource(url);
+				player.setDataSource(nextTrack);
 			} else {
 				Toast.makeText(this,
                         "Error: null URL",
@@ -225,13 +234,45 @@ public class MusicService extends Service implements OnCompletionListener,
     }
 	
 	private void tryToGetAudioFocus() {
-		// TODO Auto-generated method stub
+		if (audioFocus != AudioFocus.Focused && audioFocusHelper != null 
+				&& audioFocusHelper.requestFocus()) {
+			audioFocus = AudioFocus.Focused;
+		}
 		
 	}
 	
-	private void configureAndStartMediaPlayer(boolean b) {
-		// TODO Auto-generated method stub
-		
+	private void configureAndStartMediaPlayer() {
+		if (audioFocus == AudioFocus.NoFocusNoDuck) {
+			// Pause if no focus and cannot duck.
+			if(player.isPlaying()) {
+				player.pause();
+			}
+		} else if (audioFocus == AudioFocus.NoFocusDoDuck) {
+			// Duck if possible
+			player.setVolume(DUCK_VOLUME, DUCK_VOLUME);
+		} else {
+			// No ducking, normal volume level
+			player.setVolume(1.0f, 1.0f);
+		}
+		// Lastly, start media player if needed
+		if (!player.isPlaying()) {
+			try {
+				player.setDataSource(currentTrack);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			player.start();
+		}
 	}
 
 	@Override
@@ -242,12 +283,13 @@ public class MusicService extends Service implements OnCompletionListener,
 
 	@Override
 	public void onPrepared(MediaPlayer mp) {
-		// TODO Auto-generated method stub
+        state = State.Playing;
+        configureAndStartMediaPlayer();
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer mp) {
-		playNextTrack(playList[++currentTrackIndex % playList.length]);
+		playNextTrack();
 	}
 
 	@Override
@@ -260,7 +302,7 @@ public class MusicService extends Service implements OnCompletionListener,
 		Toast.makeText(getApplicationContext(), "gained audio focus.", Toast.LENGTH_SHORT).show();
         audioFocus = AudioFocus.Focused;
         if (state == State.Playing) {
-            configureAndStartMediaPlayer(false);
+            configureAndStartMediaPlayer();
         }
 	}
 
@@ -271,7 +313,17 @@ public class MusicService extends Service implements OnCompletionListener,
             audioFocus = canDuck ? AudioFocus.NoFocusDoDuck : AudioFocus.NoFocusNoDuck;
            
             if (player != null && player.isPlaying()) {
-                configureAndStartMediaPlayer(false);
+                configureAndStartMediaPlayer();
             }
+	}
+
+	@Override
+	public void onMusicRetrieverPrepared() {
+		state = State.Stopped;
+		currentTrack = retriever.getPlayURL();
+		if(startPlayingAfterRetrieve) {
+			tryToGetAudioFocus();
+			playNextTrack();
+		}
 	}
 }
