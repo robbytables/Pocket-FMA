@@ -1,5 +1,7 @@
 package com.code_pig.pocketfma;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import android.app.Notification;
@@ -40,9 +42,6 @@ public class MusicService extends Service implements OnCompletionListener,
 	final int NOTIFICATION_ID = 1;
 
 	private WifiLock wifiLock;
-	private AudioManager audioManager;
-	private NotificationManager notificationManager;
-    Notification mNotification = null;
 	private MusicRetriever retriever;
 	private MediaPlayer player = null;
 	private AudioFocusHelper audioFocusHelper = null;
@@ -99,9 +98,7 @@ public class MusicService extends Service implements OnCompletionListener,
 		// We want the airwaves!
 		wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
 				.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
-		notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-		
+	
 		retriever = new MusicRetriever();
 		(new MusicRetrieverTask(retriever,this)).execute();
 		
@@ -200,11 +197,13 @@ public class MusicService extends Service implements OnCompletionListener,
 		state = State.Stopped;
 		relaxResources(false);
 		nextTrack = currentTrack;
+		Log.i(TAG, "playing from :: " + nextTrack);
 		try {
 			if (nextTrack != null) {
 				createOrResetMediaPlayer();
 				player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				player.setDataSource(nextTrack);
+				BufferedInputStream inputStream = new BufferedInputStream(nextTrack);
+				player.setDataSource(inputStream.getFD());
 			} else {
 				Toast.makeText(this,
                         "Error: null URL",
