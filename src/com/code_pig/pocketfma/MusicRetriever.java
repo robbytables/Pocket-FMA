@@ -83,7 +83,7 @@ public class MusicRetriever {
 		String trackURL = null; //TODO error checking
 		try {
 			JSONObject JSONResponse = new JSONObject(response);
-			trackURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(2).getString("track_url") + "/Download";
+			trackURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(2).getString("track_url") + "/download";
 		} catch (JSONException e) {
 			Log.e(MusicRetriever.class.getName(), "Error occured in FMA Response: " + e.toString());
 		}
