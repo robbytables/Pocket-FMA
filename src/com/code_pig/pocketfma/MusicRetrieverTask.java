@@ -21,7 +21,7 @@ public class MusicRetrieverTask extends AsyncTask<String,Void,Void> {
 	@Override
 	protected Void doInBackground(String... params) {
 		Log.i(TAG, "doInBackground() called");
-		retriever.onInit(params[0]);//TODO
+		retriever.onInit(params[0]);
 		return null;
 	}
 	

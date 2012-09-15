@@ -79,7 +79,7 @@ public class MusicRetriever {
 			}
 		}
 		setForeignID(getResponse(NEXT_QUERY + sessionID));
-		setNextPlayURL(getResponse(FMA_URI + "api_key=" + FMA_API_KEY + "&id=" + foreignID));
+		setNextPlayURL(getResponse(FMA_URI + "api_key=" + FMA_API_KEY + "&track_id=" + foreignID));
 	}
 	
 	/**
@@ -90,7 +90,7 @@ public class MusicRetriever {
 		Log.i(TAG, "returnNextPlayURL() called");
 		try {
 			JSONObject JSONResponse = new JSONObject(response);
-			playURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(2).getString("track_url") + "/download";
+			playURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(0).getString("track_url") + "/download";
 		} catch (JSONException e) {
 			Log.e(MusicRetriever.class.getName(), "Error occured in FMA Response: " + e.toString());
 		}
@@ -121,6 +121,7 @@ public class MusicRetriever {
 			// Set foreign ID and session ID
 			JSONObject JSONResponse = new JSONObject(response);
 			foreignID = JSONResponse.getJSONObject(NODE_RESPONSE).getJSONArray(NODE_SONGS).getJSONObject(0).getJSONArray("tracks").getJSONObject(0).getString(NODE_FOREIGN_ID);
+			foreignID = foreignID.substring(10); // Remove "fma:track:"
 			Log.i(TAG, "foreignID retrieved :: " + foreignID);
 		} catch (JSONException e) {
 			Log.e(TAG, "JSON error: " + e.toString());

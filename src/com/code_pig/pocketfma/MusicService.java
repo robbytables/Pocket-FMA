@@ -41,6 +41,7 @@ public class MusicService extends Service implements OnCompletionListener,
 
 	private WifiLock wifiLock;
 	private MusicRetriever retriever;
+	private FileInputStream fis = null;
 	private MediaPlayer player = null;
 	private AudioFocusHelper audioFocusHelper = null;
 	private String currentTrack = null;
@@ -238,8 +239,8 @@ public class MusicService extends Service implements OnCompletionListener,
 			if (nextTrack != null) {
 				createOrResetMediaPlayer();
 				player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				FileInputStream fis = new FileInputStream(nextTrack);
-				player.setDataSource(fis.getFD());
+				//fis = new FileInputStream(nextTrack);
+				player.setDataSource(nextTrack);
 				Log.i(TAG, "player.setDataSource called, track = " + nextTrack);
 			} else {
 				Toast.makeText(this, "Error: null URL",  Toast.LENGTH_LONG).show();
@@ -273,6 +274,7 @@ public class MusicService extends Service implements OnCompletionListener,
             player.release();
             player = null;
         }
+        fis = null;
         if (wifiLock.isHeld()) wifiLock.release();
     }
 	
@@ -335,6 +337,7 @@ public class MusicService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		Log.i(TAG, "onCompletion() called");
+		fis = null;
 		playNextTrack(null);
 	}
 
