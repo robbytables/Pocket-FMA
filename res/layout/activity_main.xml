@@ -46,5 +46,26 @@
             android:layout_height="50dp"
             android:layout_margin="5dp" />
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/searchbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:ems="10"
+        android:inputType="text|textNoSuggestions" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/enterbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/searchbar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="23dp"
+        android:text="@string/enter_button" />
     
 </RelativeLayout>

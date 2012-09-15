@@ -33,6 +33,7 @@
                 <action android:name="com.example.android.musicplayer.action.SKIP" />
                 <action android:name="com.example.android.musicplayer.action.REWIND" />
                 <action android:name="com.example.android.musicplayer.action.STOP" />
+                <action android:name="com.example.android.musicplayer.action.QUERY" />
             </intent-filter>
         </service>
     </application>

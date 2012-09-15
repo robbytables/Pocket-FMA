@@ -27,72 +27,132 @@ import android.util.Log;
 
 /**
  * Handles calls to the FMA API and retrieves a playable object.
+ * @author Robby Grodin 2012
  **/
 public class MusicRetriever {
 	private static final String TAG = "MusicRetriever";
 	
-	// Hard coded values
-	private static final String LAME_DRIVERS = "http://developer.echonest.com/api/v4/playlist/dynamic?api_key=3OIWAEJ4N8PCSACPE&bucket=tracks&bucket=id:fma&artist=lame+drivers&format=json&type=artist-radio&limit=true";
-	private static final String FMA_URI = "http://freemusicarchive.org/api/get/tracks.json?";
+	// API Keys
 	private static final String FMA_API_KEY = "LI1AWSUABA89HLQM";
+	private static final String ECHO_NEST_API_KEY = "3OIWAEJ4N8PCSACPE";
+	
+	// Hard coded values
+	private static final String CREATE_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/create?api_key=" + ECHO_NEST_API_KEY + "&bucket=tracks&bucket=id:fma&format=json&type=artist-radio&limit=true&artist=";
+	private static final String RESTART_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/restart?api_key=" + ECHO_NEST_API_KEY + "&type=artist-radio&session_id="; //needs session ID and artist
+	private static final String NEXT_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/next?api_key=" + ECHO_NEST_API_KEY + "&format=json&session_id="; //needs session ID
+	private static final String FMA_URI = "http://freemusicarchive.org/api/get/tracks.json?";
+
 
 	// JSON nodes in EchoNest API response
 	private static final String NODE_RESPONSE = "response";
 	private static final String NODE_SESSION_ID = "session_id";
 	private static final String NODE_SONGS = "songs";
-	private static final String NODE_TRACKS = "tracks";
 	private static final String NODE_DATASET = "dataset";
 	private static final String NODE_FOREIGN_ID = "foreign_id";
+	private static final String NODE_STATUS = "status";
+	private static final String NODE_MESSAGE = "message";
+	private static final String SUCCESS_MESSAGE = "success";
 
 	// Retrieved track
 	private String sessionID = null;
+	private String foreignID = null;
 	private String playURL = null;
-
+	private boolean isFirstQuery = true;
+	
 	// Reference to MusicService
 	MusicService service;
 	
-	public MusicRetriever(){
-	}
-	
-	public void onInit() {
+	/**
+	 * Determines which API calls to make, and makes them. Once this task is completed
+	 * the URL for the next track to be played can be retrieved.
+	 * @param query search parameter set by user
+	 */
+	public void onInit(String query) {
+		Log.i(TAG, "onInit() called, query = " + query);
 		// All API calls are done in sequence here
-		String trackURL = null;
-		trackURL = parseFMAResponse(getResponse(parseEchoNestResponse(getResponse(LAME_DRIVERS))));
-		setPlayURL(trackURL);
-	}
-	
-	// Processes a JSON String response from the EchoNest API
-	private String parseEchoNestResponse(String response) {
-		String foreignID = null; //TODO error checking
-		try {
-			// Set foreign ID and session ID
-			JSONObject JSONResponse = new JSONObject(response);
-			if (getSessionID() == null) {
-				sessionID = JSONResponse.getJSONObject(NODE_RESPONSE).getString(NODE_SESSION_ID);
+		if (query != null) {
+			if (isFirstQuery) { // New session
+				setSessionID(getResponse(CREATE_QUERY + query));
+				isFirstQuery = false;
+			} else { // Restarting session
+				restartSession(getResponse(RESTART_QUERY + sessionID + "&artist=" + query));
 			}
-			foreignID = JSONResponse.getJSONObject(NODE_RESPONSE).getJSONArray(NODE_SONGS).getJSONObject(0).getJSONArray("tracks").getJSONObject(0).getString(NODE_FOREIGN_ID);
-			Log.i(MusicRetriever.class.getName(), "foreignID = " + foreignID + "\n" + "sessionID = " + sessionID);
-		} catch (JSONException e) {
-			Log.e(MusicRetriever.class.toString(), "JSON error: " + e.toString());
 		}
-		return FMA_URI + "api_key=" + FMA_API_KEY + "&id=" + foreignID;
+		setForeignID(getResponse(NEXT_QUERY + sessionID));
+		setNextPlayURL(getResponse(FMA_URI + "api_key=" + FMA_API_KEY + "&id=" + foreignID));
 	}
 	
-	// Processes a JSON String response from the FMA API
-	private String parseFMAResponse(String response) {
-		String trackURL = null; //TODO error checking
+	/**
+	 * Parses the response from FMA API for track data
+	 * @param response JSON style response from FMA
+	 */
+	private void setNextPlayURL(String response) {
+		Log.i(TAG, "returnNextPlayURL() called");
 		try {
 			JSONObject JSONResponse = new JSONObject(response);
-			trackURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(2).getString("track_url") + "/download";
+			playURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(2).getString("track_url") + "/download";
 		} catch (JSONException e) {
 			Log.e(MusicRetriever.class.getName(), "Error occured in FMA Response: " + e.toString());
 		}
-		return trackURL;
+	}
+
+	/**
+	 * Parses the response from EchoNest API for Dynamic/Create
+	 * @param response JSON style response from EchoNest
+	 */
+	private void setSessionID(String response) {
+		Log.i(TAG, "returnSessionID() called");
+		try {
+			JSONObject JSONResponse = new JSONObject(response);
+			sessionID = JSONResponse.getJSONObject(NODE_RESPONSE).getString(NODE_SESSION_ID);
+			isFirstQuery = false;
+		} catch (JSONException e) {
+			Log.e(TAG, "JSON error in parseCreateEchoNestResponse() :: " + e.toString());
+		}
 	}
 	
-	// Returns a JSON String given an API URL
+	/**
+	 * Parses the response from EchoNest API for Dynamic/Next
+	 * @param response JSON style response from EchoNest
+	 */
+	private void setForeignID(String response) {
+		Log.i(TAG, "returnForeignID() called");
+		try {
+			// Set foreign ID and session ID
+			JSONObject JSONResponse = new JSONObject(response);
+			foreignID = JSONResponse.getJSONObject(NODE_RESPONSE).getJSONArray(NODE_SONGS).getJSONObject(0).getJSONArray("tracks").getJSONObject(0).getString(NODE_FOREIGN_ID);
+			Log.i(TAG, "foreignID retrieved :: " + foreignID);
+		} catch (JSONException e) {
+			Log.e(TAG, "JSON error: " + e.toString());
+		}
+	}
+	
+	/**
+	 * Interprets the response from EchoNest API for Dynamic/Restart
+	 * @param response JSON style response from EchoNest
+	 */
+	private void restartSession(String response) {
+		Log.i(TAG, "restartSession() called");
+		try {
+			JSONObject JSONResponse = new JSONObject(response);
+			String message = JSONResponse.getJSONObject(NODE_RESPONSE).getJSONObject(NODE_STATUS).getString(NODE_MESSAGE);
+			if(message == SUCCESS_MESSAGE) {
+				Log.i(TAG, "Session successfully restarted");
+			} else {
+				Log.e(TAG, "ERROR" + message + "(from EchoNest)");
+			}
+		} catch (JSONException e) {
+			Log.e(TAG, "JSON error: " + e.toString());
+		}
+	}
+	
+	/**
+	 * Processes API calls over http
+	 * @param url API query
+	 * @return API response in String format
+	 */
 	private String getResponse(String url) {
-		Log.i(TAG, "Getting response for URL :: " + url);
+		Log.i(TAG, "getResponse() called, url = " + url);
 		StringBuilder builder = new StringBuilder();
 		HttpClient client = new DefaultHttpClient();
 		HttpGet httpGet = new HttpGet(url);
@@ -105,15 +165,13 @@ public class MusicRetriever {
 			if (statusCode == 200) {
 				HttpEntity entity = response.getEntity();
 				InputStream content = entity.getContent();
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(content));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(content));
 				String line;
 				while ((line = reader.readLine()) != null) {
 					builder.append(line);
 				}
 			} else {
-				Log.e(MusicRetriever.class.toString(),
-						"Failed to download file");
+				Log.e(TAG, "Failed to download file");
 			}
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -123,18 +181,9 @@ public class MusicRetriever {
 		return builder.toString();
 	}
 	
-	public String getSessionID() {
-		return sessionID;
-	}
-
-	public void setSessionID(String sessionID) {
-		this.sessionID = sessionID;
-	}
-
-	public void setPlayURL(String playURL) {
-		this.playURL = playURL;
-	}
-	
+	/**
+	 * @return next URL to be played
+	 */
 	public String getPlayURL() {
 		return playURL;
 	}

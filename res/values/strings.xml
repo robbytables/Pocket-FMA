@@ -4,5 +4,6 @@
     <string name="title">Pocket FMA Player</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_main">Pocket FMA</string>
+    <string name="enter_button">Go!</string>
 
 </resources>
