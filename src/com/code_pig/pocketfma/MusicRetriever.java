@@ -57,6 +57,10 @@ public class MusicRetriever {
 	private String sessionID = null;
 	private String foreignID = null;
 	private String playURL = null;
+	private String trackName = null;
+	private String artistName = null;
+	private String albumName = null;
+	private String trackArt = null;
 	private boolean isFirstQuery = true;
 	
 	// Reference to MusicService
@@ -79,18 +83,29 @@ public class MusicRetriever {
 			}
 		}
 		setForeignID(getResponse(NEXT_QUERY + sessionID));
-		setNextPlayURL(getResponse(FMA_URI + "api_key=" + FMA_API_KEY + "&track_id=" + foreignID));
+		setTrackData(getResponse(FMA_URI + "api_key=" + FMA_API_KEY + "&track_id=" + foreignID));
 	}
 	
 	/**
 	 * Parses the response from FMA API for track data
 	 * @param response JSON style response from FMA
 	 */
-	private void setNextPlayURL(String response) {
+	private void setTrackData(String response) {
 		Log.i(TAG, "returnNextPlayURL() called");
 		try {
+			// Retrieve data set
 			JSONObject JSONResponse = new JSONObject(response);
-			playURL = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(0).getString("track_url") + "/download";
+			JSONObject dataset = JSONResponse.getJSONArray(NODE_DATASET).getJSONObject(0);
+			// Set play URL
+			playURL = dataset.getString("track_url") + "/download";
+			// Set artist name
+			artistName = dataset.getString("artist_name");
+			// Set track name
+			trackName = dataset.getString("track_title");
+			// Set album name
+			albumName = dataset.getString("album_title");
+			// Set artwork
+			trackArt = dataset.getString("track_image_file");
 		} catch (JSONException e) {
 			Log.e(MusicRetriever.class.getName(), "Error occured in FMA Response: " + e.toString());
 		}
@@ -182,10 +197,38 @@ public class MusicRetriever {
 		return builder.toString();
 	}
 	
+	public TrackItem getTrackItem() {
+		return new TrackItem(trackName, artistName, albumName, trackArt);
+	}
+	
 	/**
 	 * @return next URL to be played
 	 */
 	public String getPlayURL() {
 		return playURL;
+	}
+
+	public String getTrackName() {
+		return trackName;
+	}
+
+	public void setTrackName(String trackName) {
+		this.trackName = trackName;
+	}
+
+	public String getArtistName() {
+		return artistName;
+	}
+
+	public void setArtistName(String artistName) {
+		this.artistName = artistName;
+	}
+
+	public String getTrackArt() {
+		return trackArt;
+	}
+
+	public void setTrackArt(String trackArt) {
+		this.trackArt = trackArt;
 	}
 }

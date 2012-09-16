@@ -15,7 +15,10 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.ResultReceiver;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -25,25 +28,30 @@ public class MusicService extends Service implements OnCompletionListener,
 		OnPreparedListener, OnErrorListener, MusicFocusable,
 		MusicRetrieverTask.MusicRetrieverPreparedListener {
 	final static String TAG = "MusicService"; // for debugging
-
+	
 	// Intent Actions
-	public static final String ACTION_TOGGLE_PLAYBACK = "com.example.android.musicplayer.action.TOGGLE_PLAYBACK";
-	public static final String ACTION_PLAY = "com.example.android.musicplayer.action.PLAY";
-	public static final String ACTION_PAUSE = "com.example.android.musicplayer.action.PAUSE";
-	public static final String ACTION_STOP = "com.example.android.musicplayer.action.STOP";
-	public static final String ACTION_SKIP = "com.example.android.musicplayer.action.SKIP";
-	public static final String ACTION_REWIND = "com.example.android.musicplayer.action.REWIND";
-	public static final String ACTION_QUERY = "com.example.android.musicplayer.action.QUERY";
+	public static final String ACTION_TOGGLE_PLAYBACK = "com.code_pig.pocketfma.action.TOGGLE_PLAYBACK";
+	public static final String ACTION_PLAY = "com.code_pig.pocketfma.action.PLAY";
+	public static final String ACTION_PAUSE = "com.code_pig.pocketfma.action.PAUSE";
+	public static final String ACTION_STOP = "com.code_pig.pocketfma.action.STOP";
+	public static final String ACTION_SKIP = "com.code_pig.pocketfma.action.SKIP";
+	public static final String ACTION_REWIND = "com.code_pig.pocketfma.action.REWIND";
+	public static final String ACTION_QUERY = "com.code_pig.pocketfma.action.QUERY";
 
 	public static final float DUCK_VOLUME = 0.1f;
 
 	final int NOTIFICATION_ID = 1;
-
+	
 	private WifiLock wifiLock;
 	private MusicRetriever retriever;
 	private MediaPlayer player = null;
 	private AudioFocusHelper audioFocusHelper = null;
+	
+	// Track info
 	private String nextTrack = null;
+	private String artistName = null;
+	private String trackName = null;
+	private String trackArt = null;
 	
     boolean startPlayingAfterRetrieve = false;
     String whatToPlayAfterRetrieve = null;
@@ -68,7 +76,7 @@ public class MusicService extends Service implements OnCompletionListener,
 	AudioFocus audioFocus = AudioFocus.NoFocusNoDuck;
 
 	String currentSongTitle = "";
-
+	
 	/**
 	 * Creates or resets media player.
 	 */
@@ -361,6 +369,11 @@ public class MusicService extends Service implements OnCompletionListener,
 		Log.i(TAG, "onMusicRetrieverPrepared() called");
 		state = State.Stopped;
 		nextTrack = retriever.getPlayURL();
+		// Send intent containing TrackItem to MainActivity to update UI with track data
+		Intent i = new Intent();
+		i.setAction("com.code_pig.pocketfma.action.UPDATE_UI");
+		i.putExtra("TrackItem", retriever.getTrackItem());
+		sendBroadcast(i);
 		if(startPlayingAfterRetrieve) {
 			tryToGetAudioFocus();
 			playNextTrack(nextTrack);

@@ -2,70 +2,124 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-
-    <TextView
-        android:id="@+id/textView1"
+    
+     <LinearLayout
+        android:id="@+id/searchrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true"
-        android:paddingTop="25dp"
-        android:text="@string/title"
-        tools:context=".MainActivity" />
+        android:layout_centerHorizontal="true" >
 
-    <LinearLayout 
-        android:id="@+id/controlRow"
+        <EditText
+            android:id="@+id/searchbar"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:inputType="text|textNoSuggestions" >
+            <requestFocus />
+        </EditText>
+
+        <Button
+            android:id="@+id/enterbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enter_button" />
+
+    </LinearLayout>
+    
+
+    <LinearLayout
+        android:id="@+id/controlrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true">
-        
-        <Button android:id="@+id/rewindbutton"
-            android:background="@drawable/btn_rew"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" >
+
+        <Button
+            android:id="@+id/rewindbutton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_margin="5dp" />
-        <Button android:id="@+id/playbutton"
-            android:background="@drawable/btn_play"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_rew" />
+
+        <Button
+            android:id="@+id/playbutton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_margin="5dp" />
-        <Button android:id="@+id/pausebutton"
-            android:background="@drawable/btn_pause"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_play" />
+
+        <Button
+            android:id="@+id/pausebutton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_margin="5dp" />
-        <Button android:id="@+id/skipbutton"
-            android:background="@drawable/btn_ff"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_pause" />
+
+        <Button
+            android:id="@+id/skipbutton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_margin="5dp" />
-        <Button android:id="@+id/stopbutton"
-            android:background="@drawable/btn_stop"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_ff" />
+
+        <Button
+            android:id="@+id/stopbutton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_margin="5dp" />
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_stop" />
     </LinearLayout>
 
-    <EditText
-        android:id="@+id/searchbar"
+    <TextView
+        android:id="@+id/nowlistening"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:ems="10"
-        android:inputType="text|textNoSuggestions" >
+        android:layout_alignLeft="@+id/searchrow"
+        android:layout_alignRight="@+id/searchrow"
+        android:layout_below="@+id/searchrow"
+        android:layout_marginTop="17dp"
+        android:text="@string/now_listening" />
 
-        <requestFocus />
-    </EditText>
-
-    <Button
-        android:id="@+id/enterbutton"
+    <TextView
+        android:id="@+id/tracktext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/searchbar"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="23dp"
-        android:text="@string/enter_button" />
+        android:layout_alignLeft="@+id/nowlistening"
+        android:layout_alignRight="@+id/nowlistening"
+        android:layout_below="@+id/nowlistening"
+        android:layout_marginTop="10dp" />
     
+    <TextView
+        android:id="@+id/artisttext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tracktext"
+        android:layout_alignRight="@+id/tracktext"
+        android:layout_below="@+id/tracktext"
+        android:layout_marginTop="10dp" />
+    
+    <TextView
+        android:id="@+id/albumtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/artisttext"
+        android:layout_alignRight="@+id/artisttext"
+        android:layout_below="@+id/artisttext"
+        android:layout_marginTop="10dp" />
+
+    <RelativeLayout
+        android:id="@+id/artview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/albumtext"
+        android:layout_above="@+id/controlrow" >
+        
+    <ImageView
+        android:id="@+id/trackart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/artisttext"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_stat_playing" />
+    </RelativeLayout>
+
 </RelativeLayout>

@@ -22,18 +22,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        
         <service
             android:name=".MusicService"
             android:exported="false" >
             <intent-filter>
-                <action android:name="com.example.android.musicplayer.action.TOGGLE_PLAYBACK" />
-                <action android:name="com.example.android.musicplayer.action.PLAY" />
-                <action android:name="com.example.android.musicplayer.action.PAUSE" />
-                <action android:name="com.example.android.musicplayer.action.SKIP" />
-                <action android:name="com.example.android.musicplayer.action.REWIND" />
-                <action android:name="com.example.android.musicplayer.action.STOP" />
-                <action android:name="com.example.android.musicplayer.action.QUERY" />
+                <action android:name="com.code_pig.pocketfma.action.TOGGLE_PLAYBACK" />
+                <action android:name="com.code_pig.pocketfma.action.PLAY" />
+                <action android:name="com.code_pig.pocketfma.action.PAUSE" />
+                <action android:name="com.code_pig.pocketfma.action.SKIP" />
+                <action android:name="com.code_pig.pocketfma.action.REWIND" />
+                <action android:name="com.code_pig.pocketfma.action.STOP" />
+                <action android:name="com.code_pig.pocketfma.action.QUERY" />
             </intent-filter>
         </service>
     </application>

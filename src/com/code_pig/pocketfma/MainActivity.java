@@ -1,13 +1,23 @@
 package com.code_pig.pocketfma;
 
+import java.io.InputStream;
+
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Main activity: shows controls, sends intents to {@link MusicService} for handling.
@@ -23,6 +33,19 @@ public class MainActivity extends Activity implements OnClickListener {
 	Button rewindButton;
 	Button enterButton;
 	EditText searchBar;
+	TextView trackName;
+	TextView artistName;
+	TextView albumName;
+	ImageView trackArt;
+	
+	BroadcastReceiver receiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context c, Intent i) {
+			setTrackInfo((TrackItem) i.getExtras().get("TrackItem"));
+		}
+	};
+	private IntentFilter filter = new IntentFilter("com.code_pig.pocketfma.action.UPDATE_UI");
+	Boolean receiverIsRegistered = false;
 	
 	/**
 	 * Initializes the {@link MusicService} and sets up event listeners.
@@ -40,7 +63,11 @@ public class MainActivity extends Activity implements OnClickListener {
         stopButton = (Button) findViewById(R.id.stopbutton);
         enterButton = (Button) findViewById(R.id.enterbutton);
         searchBar = (EditText) findViewById(R.id.searchbar);
-
+        trackName = (TextView) findViewById(R.id.tracktext);
+        artistName = (TextView) findViewById(R.id.artisttext);
+        albumName = (TextView) findViewById(R.id.albumtext);
+        trackArt = (ImageView) findViewById(R.id.trackart);
+        
         playButton.setOnClickListener(this);
         pauseButton.setOnClickListener(this);
         skipButton.setOnClickListener(this);
@@ -67,5 +94,61 @@ public class MainActivity extends Activity implements OnClickListener {
 			i.putExtra("query", searchBar.getText().toString());
 			startService(i);
 		}
+	}
+	
+	public void setTrackInfo(TrackItem track){
+		trackName.setText(track.getTrackName());
+		artistName.setText(track.getArtistName());
+		albumName.setText(track.getAlbumName());
+		if(!track.getTrackArt().equals("null")) {
+			new DownloadImageTask(trackArt).execute(track.getTrackArt());
+		}
+	}
+
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		if (receiverIsRegistered) {
+		    unregisterReceiver(receiver);
+		    receiverIsRegistered = false;
+		}
+	}
+	
+	@Override
+	public void onResume(){
+		super.onResume();
+		if (!receiverIsRegistered) {
+		    registerReceiver(receiver, filter);
+		    receiverIsRegistered = true;
+		}
+	}
+	
+	private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+		static final String TAG = "DownloadImageTask";
+	    ImageView view;
+	    
+
+	    public DownloadImageTask(ImageView view) {
+	        this.view = view;
+	        Log.i(TAG, "DownloadImageTask created");
+	    }
+
+	    protected Bitmap doInBackground(String... urls) {
+	        String imageURL = urls[0];
+	        Bitmap bm = null;
+	        try {
+	        	Log.i(TAG, "retrieving image from: " + imageURL);
+	            InputStream in = new java.net.URL(imageURL).openStream();
+	            bm = BitmapFactory.decodeStream(in);
+	        } catch (Exception e) {
+	            Log.e(TAG, "Error downloading file: " + e.getMessage());
+	        }
+	        return bm;
+	    }
+
+	    protected void onPostExecute(Bitmap result) {
+	        view.setImageBitmap(result);
+	    }
 	}
 }
