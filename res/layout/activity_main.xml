@@ -76,7 +76,7 @@
         android:layout_alignLeft="@+id/searchrow"
         android:layout_alignRight="@+id/searchrow"
         android:layout_below="@+id/searchrow"
-        android:layout_marginTop="17dp"
+        android:layout_marginTop="10dp"
         android:text="@string/now_listening" />
 
     <TextView
@@ -86,7 +86,7 @@
         android:layout_alignLeft="@+id/nowlistening"
         android:layout_alignRight="@+id/nowlistening"
         android:layout_below="@+id/nowlistening"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="5dp" />
     
     <TextView
         android:id="@+id/artisttext"
@@ -95,7 +95,7 @@
         android:layout_alignLeft="@+id/tracktext"
         android:layout_alignRight="@+id/tracktext"
         android:layout_below="@+id/tracktext"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="5dp" />
     
     <TextView
         android:id="@+id/albumtext"
@@ -104,7 +104,7 @@
         android:layout_alignLeft="@+id/artisttext"
         android:layout_alignRight="@+id/artisttext"
         android:layout_below="@+id/artisttext"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="5dp" />
 
     <RelativeLayout
         android:id="@+id/artview"
