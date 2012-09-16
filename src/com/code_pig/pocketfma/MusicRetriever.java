@@ -38,7 +38,7 @@ public class MusicRetriever {
 	
 	// Hard coded values
 	private static final String CREATE_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/create?api_key=" + ECHO_NEST_API_KEY + "&bucket=tracks&bucket=id:fma&format=json&type=artist-radio&limit=true&artist=";
-	private static final String RESTART_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/restart?api_key=" + ECHO_NEST_API_KEY + "&type=artist-radio&session_id="; //needs session ID and artist
+	private static final String RESTART_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/restart?api_key=" + ECHO_NEST_API_KEY + "&bucket=tracks&bucket=id:fma&format=json&type=artist-radio&limit=true&session_id="; //needs session ID and artist
 	private static final String NEXT_QUERY = "http://developer.echonest.com/api/v4/playlist/dynamic/next?api_key=" + ECHO_NEST_API_KEY + "&format=json&session_id="; //needs session ID
 	private static final String FMA_URI = "http://freemusicarchive.org/api/get/tracks.json?";
 
@@ -51,7 +51,7 @@ public class MusicRetriever {
 	private static final String NODE_FOREIGN_ID = "foreign_id";
 	private static final String NODE_STATUS = "status";
 	private static final String NODE_MESSAGE = "message";
-	private static final String SUCCESS_MESSAGE = "success";
+	private static final String SUCCESS_MESSAGE = "Success";
 
 	// Retrieved track
 	private String sessionID = null;
@@ -137,10 +137,10 @@ public class MusicRetriever {
 		try {
 			JSONObject JSONResponse = new JSONObject(response);
 			String message = JSONResponse.getJSONObject(NODE_RESPONSE).getJSONObject(NODE_STATUS).getString(NODE_MESSAGE);
-			if(message == SUCCESS_MESSAGE) {
+			if(message.equals(SUCCESS_MESSAGE)) {
 				Log.i(TAG, "Session successfully restarted");
 			} else {
-				Log.e(TAG, "ERROR" + message + "(from EchoNest)");
+				Log.e(TAG, "ERROR : " + message + " (from EchoNest)");
 			}
 		} catch (JSONException e) {
 			Log.e(TAG, "JSON error: " + e.toString());

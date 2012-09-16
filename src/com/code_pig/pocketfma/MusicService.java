@@ -41,10 +41,8 @@ public class MusicService extends Service implements OnCompletionListener,
 
 	private WifiLock wifiLock;
 	private MusicRetriever retriever;
-	private FileInputStream fis = null;
 	private MediaPlayer player = null;
 	private AudioFocusHelper audioFocusHelper = null;
-	private String currentTrack = null;
 	private String nextTrack = null;
 	
     boolean startPlayingAfterRetrieve = false;
@@ -190,8 +188,7 @@ public class MusicService extends Service implements OnCompletionListener,
     	Log.i(TAG, "processSkipRequest() called");
         if (state == State.Playing || state == State.Paused) {
             tryToGetAudioFocus();
-            //TODO this is a downvote
-            playNextTrack(null);
+    		(new MusicRetrieverTask(retriever,this)).execute((String) null);
         }
     }
 
@@ -232,14 +229,11 @@ public class MusicService extends Service implements OnCompletionListener,
     	Log.i(TAG, "playNextTrack() called, url = " + manualUrl);
 		state = State.Stopped;
 		relaxResources(false);
-		nextTrack = currentTrack;
-		setNextTrack();
 		Log.i(TAG, "playing from :: " + nextTrack);
 		try {
 			if (nextTrack != null) {
 				createOrResetMediaPlayer();
 				player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				//fis = new FileInputStream(nextTrack);
 				player.setDataSource(nextTrack);
 				Log.i(TAG, "player.setDataSource called, track = " + nextTrack);
 			} else {
@@ -256,12 +250,6 @@ public class MusicService extends Service implements OnCompletionListener,
 		}
 	}
 	
-	private void setNextTrack() {
-		Log.i(TAG, "setNextTrack() called");
-		// TODO Auto-generated method stub
-		
-	}
-
 	/**
 	 * Release consumed resources
 	 * @param releaseMediaPlayer
@@ -274,7 +262,6 @@ public class MusicService extends Service implements OnCompletionListener,
             player.release();
             player = null;
         }
-        fis = null;
         if (wifiLock.isHeld()) wifiLock.release();
     }
 	
@@ -337,7 +324,6 @@ public class MusicService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		Log.i(TAG, "onCompletion() called");
-		fis = null;
 		playNextTrack(null);
 	}
 
@@ -374,10 +360,10 @@ public class MusicService extends Service implements OnCompletionListener,
 	public void onMusicRetrieverPrepared() {
 		Log.i(TAG, "onMusicRetrieverPrepared() called");
 		state = State.Stopped;
-		currentTrack = retriever.getPlayURL();
+		nextTrack = retriever.getPlayURL();
 		if(startPlayingAfterRetrieve) {
 			tryToGetAudioFocus();
-			playNextTrack(currentTrack);
+			playNextTrack(nextTrack);
 		}
 	}
 }
