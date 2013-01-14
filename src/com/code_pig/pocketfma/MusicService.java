@@ -292,7 +292,7 @@ public class MusicService extends Service implements OnCompletionListener,
 		Log.i(TAG, "configureAndStartMediaPlayer() called");
 		if (audioFocus == AudioFocus.NoFocusNoDuck) {
 			// Pause if no focus and cannot duck.
-			if(player.isPlaying()) {
+			if (player.isPlaying()) {
 				player.pause();
 			}
 		} else if (audioFocus == AudioFocus.NoFocusDoDuck) {
@@ -307,6 +307,13 @@ public class MusicService extends Service implements OnCompletionListener,
 			player.start();
 			Log.i(TAG, "player.start() called");
 		}
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		System.out.println("onDestroy() called");
+		//TODO
 	}
 
 	@Override
