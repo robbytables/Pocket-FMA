@@ -49,9 +49,6 @@ public class MusicService extends Service implements OnCompletionListener,
 	
 	// Track info
 	private String nextTrack = null;
-	private String artistName = null;
-	private String trackName = null;
-	private String trackArt = null;
 	
     boolean startPlayingAfterRetrieve = false;
     String whatToPlayAfterRetrieve = null;

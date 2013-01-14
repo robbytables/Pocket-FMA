@@ -98,10 +98,12 @@ public class MainActivity extends Activity implements OnClickListener {
 	
 	public void setTrackInfo(TrackItem track){
 		trackName.setText(track.getTrackName());
-		artistName.setText(track.getArtistName());
-		albumName.setText(track.getAlbumName());
+		artistName.setText("by " + track.getArtistName());
+		albumName.setText("off " + track.getAlbumName());
 		if(!track.getTrackArt().equals("null")) {
 			new DownloadImageTask(trackArt).execute(track.getTrackArt());
+		} else {
+			trackArt.setImageResource(R.drawable.ic_stat_playing);
 		}
 	}
 
